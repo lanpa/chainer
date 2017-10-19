@@ -12,8 +12,8 @@ from net import Discriminator
 from net import Generator
 from updater import DCGANUpdater
 from visualize import out_generated_image
-
-
+from tensorboardX import SummaryWriter
+from writetnesorboard import LogTensorboard
 def main():
     parser = argparse.ArgumentParser(description='Chainer example: DCGAN')
     parser.add_argument('--batchsize', '-b', type=int, default=50,
@@ -43,7 +43,7 @@ def main():
     print('# n_hidden: {}'.format(args.n_hidden))
     print('# epoch: {}'.format(args.epoch))
     print('')
-
+    writer = SummaryWriter()
     # Set up a neural network to train
     gen = Generator(n_hidden=args.n_hidden)
     dis = Discriminator()
@@ -95,6 +95,7 @@ def main():
     trainer.extend(extensions.snapshot_object(
         dis, 'dis_iter_{.updater.iteration}.npz'), trigger=snapshot_interval)
     trainer.extend(extensions.LogReport(trigger=display_interval))
+    trainer.extend(LogTensorboard(trigger=display_interval, logger=writer))
     trainer.extend(extensions.PrintReport([
         'epoch', 'iteration', 'gen/loss', 'dis/loss',
     ]), trigger=display_interval)
@@ -102,7 +103,7 @@ def main():
     trainer.extend(
         out_generated_image(
             gen, dis,
-            10, 10, args.seed, args.out),
+            10, 10, args.seed, args.out, writer),
         trigger=snapshot_interval)
 
     if args.resume:

@@ -10,7 +10,7 @@ import chainer.cuda
 from chainer import Variable
 
 
-def out_generated_image(gen, dis, rows, cols, seed, dst):
+def out_generated_image(gen, dis, rows, cols, seed, dst, writer):
     @chainer.training.make_extension()
     def make_image(trainer):
         np.random.seed(seed)
@@ -33,5 +33,6 @@ def out_generated_image(gen, dis, rows, cols, seed, dst):
             '/image{:0>8}.png'.format(trainer.updater.iteration)
         if not os.path.exists(preview_dir):
             os.makedirs(preview_dir)
+        writer.add_image('img', x, trainer.updater.iteration)
         Image.fromarray(x).save(preview_path)
     return make_image
